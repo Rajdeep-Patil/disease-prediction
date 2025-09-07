@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disease Prediction</title>
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #b3e5fc, #81d4fa);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    width: 95%;
+    max-width: 1100px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+h2 {
+    text-align: center;
+    font-size: 30px;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+/* Form Grid */
+form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+    gap: 15px;
+}
+
+/* Form Group */
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Labels */
+label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+/* Toggle Buttons */
+.toggle-group {
+    display: flex;
+    gap: 10px;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 8px 0;
+    border-radius: 12px;
+    border: 2px solid #ccc;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s;
+    color: #555;
+    user-select: none;
+}
+
+.toggle-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Selected states */
+.toggle-btn.selected-yes {
+    background: linear-gradient(135deg, #4caf50, #81c784);
+    border-color: #4caf50;
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.toggle-btn.selected-no {
+    background: linear-gradient(135deg, #f8bbd0, #f48fb1);
+    border-color: #f48fb1;
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Hidden radio inputs */
+input[type="radio"] {
+    display: none;
+}
+
+/* Submit Button */
+button[type="submit"] {
+    grid-column: 1/-1;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg,#2193b0,#6dd5ed);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+button[type="submit"]:hover {
+    background: linear-gradient(135deg,#6dd5ed,#2193b0);
+    transform: translateY(-3px);
+}
+
+/* Prediction Result */
+.result {
+    grid-column: 1/-1;
+    margin-top: 15px;
+    padding: 12px;
+    background: linear-gradient(135deg,#a1c4fd,#c2e9fb);
+    border-radius: 12px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: #fff;
+}
+</style>
+<script>
+// Toggle button function
+function selectOption(btn, name, value) {
+    const group = document.querySelectorAll(`input[name="${name}"]`);
+    const buttons = btn.parentElement.querySelectorAll('.toggle-btn');
+    
+    group.forEach(radio => radio.checked = false);
+    btn.previousElementSibling.checked = true;
+
+    buttons.forEach(b => b.classList.remove('selected-yes', 'selected-no'));
+    if(value=="1") {
+        btn.classList.add('selected-yes');
+    } else {
+        btn.classList.add('selected-no');
+    }
+}
+
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        const fields = document.querySelectorAll('#symptomForm .form-group');
+
+        fields.forEach(f => {
+            const colName = f.getAttribute('data-col').replace('_', ' ').toLowerCase();
+            if(colName.includes(filter)) {
+                f.style.display = 'flex';
+            } else {
+                f.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+</head>
+<body>
+<div class="container">
+    <h2>🧑‍⚕️ Disease Prediction Form</h2>
+
+    <!-- Search box -->
+    <input type="text" id="searchInput" placeholder="Search symptoms..." 
+           style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ccc; font-size: 16px;">
+
+    <form action="/predict" method="post" id="symptomForm">
+        {% for col in ['itching', 'skin_rash', 'nodal_skin_eruptions', 'continuous_sneezing', 'shivering', 'chills', 'joint_pain', 'stomach_pain', 'acidity', 'ulcers_on_tongue', 'muscle_wasting', 'vomiting', 'burning_micturition', 'spotting_ urination', 'fatigue', 'weight_gain', 'anxiety', 'cold_hands_and_feets', 'mood_swings', 'weight_loss', 'restlessness', 'lethargy', 'patches_in_throat', 'irregular_sugar_level', 'cough', 'high_fever', 'sunken_eyes', 'breathlessness', 'sweating', 'dehydration', 'indigestion', 'headache', 'yellowish_skin', 'dark_urine', 'nausea', 'loss_of_appetite', 'pain_behind_the_eyes', 'back_pain', 'constipation', 'abdominal_pain', 'diarrhoea', 'mild_fever', 'yellow_urine', 'yellowing_of_eyes', 'acute_liver_failure', 'swelling_of_stomach', 'swelled_lymph_nodes', 'malaise', 'blurred_and_distorted_vision', 'phlegm', 'throat_irritation', 'redness_of_eyes', 'sinus_pressure', 'runny_nose', 'congestion', 'chest_pain', 'weakness_in_limbs', 'fast_heart_rate', 'pain_during_bowel_movements', 'pain_in_anal_region', 'bloody_stool', 'irritation_in_anus', 'neck_pain', 'dizziness', 'cramps', 'bruising', 'obesity', 'swollen_legs', 'swollen_blood_vessels', 'puffy_face_and_eyes', 'enlarged_thyroid', 'brittle_nails', 'swollen_extremeties', 'excessive_hunger', 'extra_marital_contacts', 'drying_and_tingling_lips', 'slurred_speech', 'knee_pain', 'hip_joint_pain', 'muscle_weakness', 'stiff_neck', 'swelling_joints', 'movement_stiffness', 'spinning_movements', 'loss_of_balance', 'unsteadiness', 'weakness_of_one_body_side', 'loss_of_smell', 'bladder_discomfort', 'foul_smell_of urine', 'continuous_feel_of_urine', 'passage_of_gases', 'internal_itching', 'toxic_look_(typhos)', 'depression', 'irritability', 'muscle_pain', 'altered_sensorium', 'red_spots_over_body', 'belly_pain', 'abnormal_menstruation', 'dischromic _patches', 'watering_from_eyes', 'increased_appetite', 'polyuria', 'family_history', 'mucoid_sputum', 'rusty_sputum', 'lack_of_concentration', 'visual_disturbances', 'receiving_blood_transfusion', 'receiving_unsterile_injections', 'coma', 'stomach_bleeding', 'distention_of_abdomen', 'history_of_alcohol_consumption', 'fluid_overload.1', 'blood_in_sputum', 'prominent_veins_on_calf', 'palpitations', 'painful_walking', 'pus_filled_pimples', 'blackheads', 'scurring', 'skin_peeling', 'silver_like_dusting', 'small_dents_in_nails', 'inflammatory_nails', 'blister', 'red_sore_around_nose', 'yellow_crust_ooze'] %}
+        <div class="form-group" data-col="{{ col }}">
+            <label>{{ col.replace('_',' ')|capitalize }}</label>
+            <div class="toggle-group">
+                <input type="radio" id="{{ col }}_no" name="{{ col }}" value="0" checked>
+                <div class="toggle-btn selected-no" onclick="selectOption(this,'{{ col }}','0')">No</div>
+                
+                <input type="radio" id="{{ col }}_yes" name="{{ col }}" value="1">
+                <div class="toggle-btn" onclick="selectOption(this,'{{ col }}','1')">Yes</div>
+            </div>
+        </div>
+        {% endfor %}
+        <button type="submit">🔍 Predict</button>
+    </form>
+
+    {% if prediction_text %}
+    <div class="result">{{ prediction_text }}</div>
+    {% endif %}
+</div>
+</body>
+</html>
