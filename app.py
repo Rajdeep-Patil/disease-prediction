@@ -1,7 +1,6 @@
 from flask import Flask, request, render_template, jsonify
 import pickle
 import pandas as pd
-import mysql.connector
 import os
 
 # Flask app
@@ -10,17 +9,6 @@ app = Flask(__name__)
 # Load trained model
 with open("Notebooks/model/best_model.pkl", "rb") as f:
     model = pickle.load(f)
-
-# Database connection using environment variables
-db = mysql.connector.connect(
-    host=os.environ.get("DB_HOST", "localhost"),
-    port=int(os.environ.get("DB_PORT", 3306)),
-    user=os.environ.get("DB_USER", "root"),
-    password=os.environ.get("DB_PASS", "9589319981@123"),
-    database=os.environ.get("DB_NAME", "disease_db")
-)
-
-cursor = db.cursor()
 
 # Home page route
 @app.route('/')
@@ -53,12 +41,6 @@ def predict():
     # Make prediction
     prediction = prognosis_dict[int(model.predict(df)[0])]
 
-    # Store result in DB
-    sql = "INSERT INTO predictions (symptoms, result) VALUES (%s, %s)"
-    val = (str(data), prediction)
-    cursor.execute(sql, val)
-    db.commit()
-
     return render_template("index.html", prediction_text=f"Disease: {prediction}")
 
 # API route (JSON)
@@ -84,16 +66,9 @@ def api_predict():
         38:'Urinary tract infection', 35:'Psoriasis', 27:'Impetigo'
     }[prediction]
 
-    # Store in DB
-    sql = "INSERT INTO predictions (symptoms, result) VALUES (%s, %s)"
-    val = (str(content), result)
-    cursor.execute(sql, val)
-    db.commit()
-
     return jsonify({"prediction": result})
 
 # Run the app
 if __name__ == "__main__":
-    # Render sets PORT automatically
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
